@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema(
             type: String,
             required: true,
             max: 50,
-            unique: true
+            unique: true,
         },
         password: {
             type: String,
@@ -31,13 +31,14 @@ const UserSchema = new mongoose.Schema(
         },
         friends: {
             type: Array,
-            default: []
+            default: [],
         },
         location: String,
         occupation: String,
         viewedProfile: Number,
         impressions: Number,
-    }, { timestamps: true }
+    },
+    { timestamps: true }
 );
 
 const User = mongoose.model("User", UserSchema);
