@@ -2,10 +2,12 @@ import {
     EditOutlined,
     DeleteOutlined,
     AttachFileOutlined,
-    GifBoxOutlined,
+    AddTask,
     ImageOutlined,
     MicOutlined,
     MoreHorizOutlined,
+    AvTimer,
+    Widgets,
 } from "@mui/icons-material";
 import {
     Box,
@@ -21,14 +23,18 @@ import FlexBetween from "components/FlexBetween";
 import Dropzone from "react-dropzone";
 import UserImage from "components/UserImage";
 import WidgetWrapper from "components/WidgetWrapper";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "state";
+import TimerWidget from "./TimerWidget";
+import RoutineWidget from "./RoutineWidget";
 
 const MyPostWidget = ({ picturePath }) => {
     const dispatch = useDispatch();
     const [isImage, setIsImage] = useState(false);
     const [image, setImage] = useState(null);
+    const [isTimer, setIsTimer] = useState(false);
+    const [isRoutine, setIsRoutine] = useState(false);
     const [post, setPost] = useState("");
     const { palette } = useTheme();
     const { _id } = useSelector((state) => state.user);
@@ -36,8 +42,22 @@ const MyPostWidget = ({ picturePath }) => {
     const isNonMobileScreens = useMediaQuery("(min-width: 1000px)");
     const mediumMain = palette.neutral.mediumMain;
     const medium = palette.neutral.medium;
+    const durationRef = useRef(0);
+    const routineRef = useRef("");
+    const [timers, setTimers] = useState([]);
+    const [routines, setRoutines] = useState([]);
 
     const handlePost = async () => {
+        if (isTimer) {
+            setTimers(oldArray => [...oldArray, durationRef.current.value]);
+            setIsTimer(false);
+            return;
+        }
+        if (isRoutine) {
+            setRoutines(oldArray => [...oldArray, routineRef.current.value]);
+            setIsRoutine(false);
+            return;
+        }
         const formData = new FormData();
         formData.append("userId", _id);
         formData.append("description", post);
@@ -55,6 +75,7 @@ const MyPostWidget = ({ picturePath }) => {
         dispatch(setPosts({ posts }));
         setImage(null);
         setPost("");
+
     };
 
     return (
@@ -118,6 +139,33 @@ const MyPostWidget = ({ picturePath }) => {
                 </Box>
             )}
 
+            {isTimer && (
+                <Box
+                    border={`1px solid ${medium}`}
+                    borderRadius="5px"
+                    mt="1rem"
+                    p="1rem"
+                >
+                    <form>
+                        <label>Duration: </label>
+                        <input type="text" id="duration" ref={durationRef} />
+                    </form>
+                </Box>
+            )}
+            {isRoutine && (
+                <Box
+                    border={`1px solid ${medium}`}
+                    borderRadius="5px"
+                    mt="1rem"
+                    p="1rem"
+                >
+                    <form>
+                        <label>Routine Name: </label>
+                        <input type="text" id="routinename" ref={routineRef} />
+                    </form>
+                </Box>
+            )}
+
             <Divider sx={{ margin: "1.25rem 0" }} />
 
             <FlexBetween>
@@ -134,11 +182,6 @@ const MyPostWidget = ({ picturePath }) => {
                 {isNonMobileScreens ? (
                     <>
                         <FlexBetween gap="0.25rem">
-                            <GifBoxOutlined sx={{ color: mediumMain }} />
-                            <Typography color={mediumMain}>Clip</Typography>
-                        </FlexBetween>
-
-                        <FlexBetween gap="0.25rem">
                             <AttachFileOutlined sx={{ color: mediumMain }} />
                             <Typography color={mediumMain}>Attachment</Typography>
                         </FlexBetween>
@@ -146,6 +189,16 @@ const MyPostWidget = ({ picturePath }) => {
                         <FlexBetween gap="0.25rem">
                             <MicOutlined sx={{ color: mediumMain }} />
                             <Typography color={mediumMain}>Audio</Typography>
+                        </FlexBetween>
+
+                        <FlexBetween gap="0.25rem" onClick={() => { setIsRoutine((routine) => !routine); setPost(true); }}>
+                            <AddTask sx={{ color: mediumMain }} />
+                            <Typography color={mediumMain} sx={{ "&:hover": { cursor: "pointer", color: medium } }}>Routine</Typography>
+                        </FlexBetween>
+
+                        <FlexBetween gap="0.25rem" onClick={() => { setIsTimer((time) => !time); setPost(true); }}>
+                            <AvTimer sx={{ color: mediumMain }} />
+                            <Typography color={mediumMain} sx={{ "&:hover": { cursor: "pointer", color: medium } }}>Timer</Typography>
                         </FlexBetween>
                     </>
                 ) : (
@@ -166,6 +219,12 @@ const MyPostWidget = ({ picturePath }) => {
                     POST
                 </Button>
             </FlexBetween>
+            {timers.map((tim, idx) => (
+                <TimerWidget key={idx} duration={tim} />
+            ))}
+            {routines.map((rout, idx) => (
+                <RoutineWidget key={rout+idx} routine={rout} />
+            ))}
         </WidgetWrapper>
     );
 };
